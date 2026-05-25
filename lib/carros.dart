@@ -1,6 +1,9 @@
-// TODO Implement this library.
-import 'package:flutter/material.dart';
-import 'package:flame/components.dart';
+import 'package:flutter/material.dart';     // Para Paint, Colors, Canvas e Rect
+import 'package:flame/components.dart';    // Para RectangleComponent e Vector2
+import 'package:flame/extensions.dart'; 
+
+import 'racing_game.dart'; 
+import 'main.dart'; 
 
 // ========== 1. CARRO AZUL PADRÃO ==========
 class CarroAzul extends RectangleComponent {

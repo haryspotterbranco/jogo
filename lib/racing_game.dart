@@ -4,8 +4,23 @@ import 'package:flame/components.dart';
 import 'dart:math';
 import 'carros.dart';
 
+enum Dificuldade{
+  facil(velocidadeObstaculo: 150.0, tempoSpawn: 2.0),
+  medio(velocidadeObstaculo: 250.0, tempoSpawn: 1.5),
+  dificil(velocidadeObstaculo: 400.0, tempoSpawn: 0.8);
+
+  final double velocidadeObstaculo;
+  final double tempoSpawn;
+
+  const Dificuldade({
+    required this.velocidadeObstaculo,
+    required this.tempoSpawn,
+  });
+}
+Dificuldade dificuldadeAtual = Dificuldade.facil;
+
 class RacingGame extends FlameGame {
-  late RectangleComponent carro;
+  late PositionComponent carro; 
   List<RectangleComponent> obstaculos = [];
   bool gameOver = false;
   double limiteEsquerda = 0;
@@ -26,7 +41,7 @@ class RacingGame extends FlameGame {
     
     switch(tipoCarro) {
       case 0:
-        carro = CarroAzul(position: Vector2(size.x / 2 - 25, size.y - 100));
+        carro  = CarroAzul(position: Vector2(size.x / 2 - 25, size.y - 100));
         break;
       case 1:
         carro = CarroVermelho(position: Vector2(size.x / 2 - 22.5, size.y - 100));
@@ -35,7 +50,6 @@ class RacingGame extends FlameGame {
         carro = CarroAmarelo(position: Vector2(size.x / 2 - 25, size.y - 100));
         break;
       default:
-        carro = CarroAzul(position: Vector2(size.x / 2 - 25, size.y - 100));
     }
     add(carro);
     
@@ -52,7 +66,8 @@ class RacingGame extends FlameGame {
   }
   
   void gerarObstaculos() {
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    final millisegundos = (dificuldadeAtual.tempoSpawn * 1000).toInt();
+    Future.delayed(Duration(milliseconds: millisegundos), () {
       if (!gameOver) {
         double x = limiteEsquerda + (limiteDireita - limiteEsquerda - 40) * random.nextDouble();
         
@@ -66,7 +81,7 @@ class RacingGame extends FlameGame {
         
         gerarObstaculos();
       }
-    });
+    }
   }
   
   @override
@@ -115,7 +130,9 @@ class RacingGame extends FlameGame {
       
       pontos++;
       if (pontos % 60 == 0) {
+        final pontosExibidos = pontos ~/60;
         textoPontos.text = 'Pontos: ${pontos ~/ 60}';
+        _atualizarDificuldade(pontosExibidos);
       }
     }
   }
@@ -145,3 +162,15 @@ class RacingGame extends FlameGame {
     onLoad();
   }
 }
+  
+  void _atualizarDificuldade(int pontosAtuais) {
+    if (pontosAtuais >= 30) {
+      if (dificuldadeAtual != Dificuldade.dificil) {
+        dificuldadeAtual = Dificuldade.dificil;
+      }
+    } else if (pontosAtuais >= 10) {
+      if (dificuldadeAtual != Dificuldade.medio) {
+        dificuldadeAtual = Dificuldade.medio;
+      }
+    }
+  }
