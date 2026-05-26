@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'racing_game.dart';
 import 'carros.dart';
+import 'componentes/obstaculo.dart'; 
+
 
 void main() {
   runApp(const MyApp());

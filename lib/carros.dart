@@ -1,106 +1,74 @@
-import 'package:flutter/material.dart';     // Para Paint, Colors, Canvas e Rect
-import 'package:flame/components.dart';    // Para RectangleComponent e Vector2
-import 'package:flame/extensions.dart'; 
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
 
-import 'racing_game.dart'; 
-import 'main.dart'; 
+// Imports oficiais usando o padrão do seu projeto (Resolve erros de tipo)
+import 'package:meu_jogo_corrida/racing_game.dart'; 
+import 'package:meu_jogo_corrida/componentes/projetil.dart';
 
-// ========== 1. CARRO AZUL PADRÃO ==========
-class CarroAzul extends RectangleComponent {
-  CarroAzul({required Vector2 position}) : super(
+class CarroJogador extends RectangleComponent with CollisionCallbacks, HasGameRef<RacingGame> {
+  bool temArma = false;
+  double tempoDoUltimoTiro = 0;
+  final double intervaloEntreTiros = 0.5;
+
+  // Recebe a posição e a cor dinamicamente
+  CarroJogador({required Vector2 position, required Color cor}) : super(
     position: position,
     size: Vector2(50, 80),
   ) {
-    paint = Paint()..color = Colors.blue;
+    paint = Paint()..color = cor;
   }
-  
+
+  @override
+  void onLoad() {
+    super.onLoad();
+    // Ativa o corpo físico do carro (Resolve o problema de passar por dentro)
+    add(RectangleHitbox()); 
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    
+    // Gerencia o tiro automático se tiver a arma
+    if (temArma) {
+      tempoDoUltimoTiro += dt;
+      if (tempoDoUltimoTiro >= intervaloEntreTiros) {
+        atirar();
+        tempoDoUltimoTiro = 0;
+      }
+    }
+  }
+
+  @override
+  void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollisionStart(intersectionPoints, other);
+
+    // Se colidir com o item da arma (que está no racing_game.dart)
+    if (other is ItemArma) {
+      temArma = true;
+      other.removeFromParent();
+    }
+
+    // Se colidir com o obstáculo vermelho
+    if (other is Obstaculo) {
+      gameRef.gameOver = true; // Ativa o Game Over no jogo principal
+    }
+  }
+
+  void atirar() {
+    final tiro = Projetil(
+      posicao: Vector2(position.x + size.x / 2, position.y - 10),
+    );
+    gameRef.add(tiro); 
+  }
+
   @override
   void render(Canvas canvas) {
     super.render(canvas);
     
-    // Janela
+    // Declarado apenas uma vez (Resolve erro de duplicidade)
     final whitePaint = Paint()..color = Colors.white;
     canvas.drawRect(Rect.fromLTWH(10, 10, size.x - 20, 25), whitePaint);
-    
-    // Faróis
-    final yellowPaint = Paint()..color = Colors.yellow;
-    canvas.drawRect(Rect.fromLTWH(5, size.y - 15, 10, 10), yellowPaint);
-    canvas.drawRect(Rect.fromLTWH(size.x - 15, size.y - 15, 10, 10), yellowPaint);
-    
-    // Rodas
-    final blackPaint = Paint()..color = Colors.black;
-    canvas.drawRect(Rect.fromLTWH(5, size.y - 10, 12, 8), blackPaint);
-    canvas.drawRect(Rect.fromLTWH(size.x - 17, size.y - 10, 12, 8), blackPaint);
   }
-}
-
-// ========== 2. CARRO VERMELHO ESPORTIVO ==========
-class CarroVermelho extends RectangleComponent {
-  CarroVermelho({required Vector2 position}) : super(
-    position: position,
-    size: Vector2(45, 75),
-  ) {
-    paint = Paint()..color = Colors.red;
-  }
-  
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    
-    // Listras esportivas
-    final whitePaint = Paint()..color = Colors.white;
-    canvas.drawRect(Rect.fromLTWH(15, 5, 5, 30), whitePaint);
-    canvas.drawRect(Rect.fromLTWH(25, 5, 5, 30), whitePaint);
-    
-    // Janela escura
-    final darkPaint = Paint()..color = Colors.grey[800]!;
-    canvas.drawRect(Rect.fromLTWH(10, 10, size.x - 20, 20), darkPaint);
-    
-    // Rodas
-    final blackPaint = Paint()..color = Colors.black;
-    canvas.drawCircle(Offset(12, size.y - 10), 8, blackPaint);
-    canvas.drawCircle(Offset(size.x - 12, size.y - 10), 8, blackPaint);
-    
-    // Faróis de LED
-    final ledPaint = Paint()..color = const Color(0xFF00FF00);
-    canvas.drawRect(Rect.fromLTWH(3, size.y - 12, 8, 6), ledPaint);
-    canvas.drawRect(Rect.fromLTWH(size.x - 11, size.y - 12, 8, 6), ledPaint);
-  }
-}
-
-// ========== 3. CARRO AMARELO ==========
-class CarroAmarelo extends RectangleComponent {
-  CarroAmarelo({required Vector2 position}) : super(
-    position: position,
-    size: Vector2(50, 80),
-  ) {
-    paint = Paint()..color = Colors.amber;
-  }
-  
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    
-    // Faixa preta
-    final blackPaint = Paint()..color = Colors.black;
-    canvas.drawRect(Rect.fromLTWH(0, size.y / 2 - 10, size.x, 20), blackPaint);
-    
-    // Janela
-    final whitePaint = Paint()..color = Colors.white;
-    canvas.drawRect(Rect.fromLTWH(10, 10, size.x - 20, 20), whitePaint);
-    
-    // Rodas
-    final grayPaint = Paint()..color = Colors.grey;
-    canvas.drawRect(Rect.fromLTWH(5, size.y - 12, 12, 8), grayPaint);
-    canvas.drawRect(Rect.fromLTWH(size.x - 17, size.y - 12, 12, 8), grayPaint);
-  }
-}
-
-// ========== LISTA DE CARROS ==========
-class ListaCarros {
-  static final List<Map<String, dynamic>> carros = [
-    {'nome': 'Azul', 'icone': '🔵', 'cor': Colors.blue, 'classe': CarroAzul},
-    {'nome': 'Vermelho', 'icone': '🔴', 'cor': Colors.red, 'classe': CarroVermelho},
-    {'nome': 'Amarelo', 'icone': '🟡', 'cor': Colors.amber, 'classe': CarroAmarelo},
-  ];
 }
