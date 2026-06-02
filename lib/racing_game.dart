@@ -1,11 +1,8 @@
-import 'package:flame/collisions.dart';
-import 'package:flame/game.dart';
-import 'package:flame/components.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
-// IMPORTS CORRIGIDOS (Ajustado para ler diretamente os seus arquivos)
+import 'package:flame/game.dart';
 import 'componentes/obstaculo.dart';
-import 'carros.dart'; // CORRIGIDO: Removido o 'componentes/' se ele estiver na raiz
+import 'carros.dart'; 
 
 enum Dificuldade {
   facil(velocidadeObstaculo: 200.0, tempoSpawn: 1.5),
@@ -21,43 +18,59 @@ enum Dificuldade {
   });
 }
 
-// RECUPERADO: Trazendo de volta a variável global que controla a dificuldade
+// Controle de dificuldade global
 Dificuldade dificuldadeAtual = Dificuldade.facil;
 
 class RacingGame extends FlameGame with HasCollisionDetection {
+  final int tipoCarro;
+
+  // Construtor correto
+  RacingGame({required this.tipoCarro});
+
+  // Declaração dos carros
   late CarroJogador carroAzul;
   late CarroJogador carroAmarelo;
   late CarroJogador carroVermelho;
-}
-  // RECOLOCADO: Variáveis da pista e jogo que o método gerarObstaculos precisa
-  bool gameOver = false;
-  double limiteEsquerda = 0;   // Se você já tiver um valor inicial para eles, pode colocar aqui (ex: 50)
-  double limiteDireita = 400;  // Se você tiver um valor inicial, coloque aqui (ex: 400)
-  final random = Random();
 
-// A PARTIR DAQUI, O ITEM ARMA FICA TOTALMENTE FORA DA CLASSE ACIMA
-class ItemArma extends RectangleComponent {
-  ItemArma({required Vector2 posicao})
-      : super(
-          position: posicao,
-          size: Vector2(30, 30),
-          anchor: Anchor.center,
-        ) {
-    paint = Paint()..color = Colors.blue;
-  }
+  // Variáveis de estado do jogo
+  bool gameOver = false; 
+  double limiteEsquerda = 0;
 
   @override
-  void onLoad() {
-    super.onLoad();
-    add(RectangleHitbox());
+  Future<void> onLoad() async {
+    // Adicione aqui o código de inicialização do seu jogo, se houver
+    // Exemplo: add(carroAzul); etc.
   }
 
-  @override
-  void update(double dt) {
-    super.update(dt);
-    position.y += 200 * dt; 
-    if (position.y > 1000) {
-      removeFromParent();
+  // Método chamado pelos botões da interface do Flutter
+  void moverEsquerda() {
+    // Certifique-se de que a variável ou lógica de posição dos seus carros está correta aqui
+    if (tipoCarro == 0) {
+      carroAzul.position.x -= 20;
+    } else if (tipoCarro == 1) {
+      carroAmarelo.position.x -= 20;
+    } else {
+      carroVermelho.position.x -= 20;
     }
+  }
+  
+  // 🔴 ADICIONE ESTA NOVA FUNÇÃO EXATAMENTE AQUI:
+  void moverDireita() {
+    if (tipoCarro == 0) {
+      carroAzul.position.x += 20; // Soma (+) faz o carro ir para a direita
+    } else if (tipoCarro == 1) {
+      carroAmarelo.position.x += 20;
+    } else {
+      carroVermelho.position.x += 20;
+    }
+  }
+
+  void parar() {
+    // Insira aqui a lógica para fazer o carro parar se o botão for solto
+  }
+
+  void reiniciar() {
+    gameOver = false;
+    // Insira aqui a lógica para resetar a pista e os carros
   }
 }

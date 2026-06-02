@@ -58,17 +58,17 @@ class _TelaInicioState extends State<TelaInicio> {
                 'Escolha seu Carro',
                 style: TextStyle(fontSize: 24, color: Colors.yellow),
               ),
-              const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(ListaCarros.carros.length, (index) {
-                  final carro = ListaCarros.carros[index];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        carroSelecionado = index;
-                      });
-                    },
+             const SizedBox(height: 30),
+            Row(
+         mainAxisAlignment: MainAxisAlignment.center,
+       children: List.generate(ListaCarros.carros.length, (index) {
+     final carro = ListaCarros.carros[index];
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          carroSelecionado = index;
+        });
+      },// ... resto do seu design de cartões de carros
                     child: Container(
                       width: 100,
                       margin: const EdgeInsets.all(10),
@@ -120,7 +120,7 @@ class _TelaInicioState extends State<TelaInicio> {
   }
 }
 
-// ========== TELA DO JOGO ==========
+// ========== TElA DO JOGO ==========
 class TelaJogo extends StatefulWidget {
   final int tipoCarro;
   const TelaJogo({super.key, required this.tipoCarro});

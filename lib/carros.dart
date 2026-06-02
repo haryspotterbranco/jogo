@@ -1,7 +1,7 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-
+import 'componentes/obstaculo.dart';
 // Imports oficiais usando o padrão do seu projeto (Resolve erros de tipo)
 import 'package:meu_jogo_corrida/racing_game.dart'; 
 import 'package:meu_jogo_corrida/componentes/projetil.dart';
