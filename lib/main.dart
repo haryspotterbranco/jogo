@@ -4,7 +4,6 @@ import 'racing_game.dart';
 import 'carros.dart';
 import 'componentes/obstaculo.dart'; 
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -33,7 +32,6 @@ class TelaInicio extends StatefulWidget {
 
 class _TelaInicioState extends State<TelaInicio> {
   int carroSelecionado = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,17 +56,24 @@ class _TelaInicioState extends State<TelaInicio> {
                 'Escolha seu Carro',
                 style: TextStyle(fontSize: 24, color: Colors.yellow),
               ),
-             const SizedBox(height: 30),
-            Row(
-         mainAxisAlignment: MainAxisAlignment.center,
-       children: List.generate(ListaCarros.carros.length, (index) {
-     final carro = ListaCarros.carros[index];
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          carroSelecionado = index;
-        });
-      },// ... resto do seu design de cartões de carros
+              const SizedBox(height: 30),
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) {
+                  final listaCarrosExemplo = [
+                    {'nome': 'Carro A', 'icone': '🚗', 'cor': Colors.red},
+                    {'nome': 'Carro B', 'icone': '🚙', 'cor': Colors.blue},
+                    {'nome': 'Carro C', 'icone': '🏎️', 'cor': Colors.green},
+                  ];
+                  final carro = listaCarrosExemplo[index];
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        carroSelecionado = index;
+                      });
+                    },
                     child: Container(
                       width: 100,
                       margin: const EdgeInsets.all(10),
@@ -80,13 +85,13 @@ class _TelaInicioState extends State<TelaInicio> {
                       ),
                       child: Column(
                         children: [
-                          Text(carro['icone'], style: const TextStyle(fontSize: 40)),
+                          Text(carro['icone'] as String, style: const TextStyle(fontSize: 40)),
                           const SizedBox(height: 10),
-                          Text(carro['nome'], style: const TextStyle(color: Colors.white)),
+                          Text(carro['nome'] as String, style: const TextStyle(color: Colors.white)),
                           Container(
                             width: 30,
                             height: 15,
-                            color: carro['cor'],
+                            color: carro['cor'] as Color,
                           ),
                         ],
                       ),
@@ -94,7 +99,9 @@ class _TelaInicioState extends State<TelaInicio> {
                   );
                 }),
               ),
+              
               const SizedBox(height: 50),
+              
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -110,7 +117,10 @@ class _TelaInicioState extends State<TelaInicio> {
                   backgroundColor: Colors.green,
                   padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                 ),
-                child: const Text('INICIAR JOGO', style: TextStyle(fontSize: 20)),
+                child: const Text(
+                  'INICIAR JOGO',
+                  style: TextStyle(fontSize: 20),
+                ),
               ),
             ],
           ),
