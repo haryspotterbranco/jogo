@@ -36,11 +36,26 @@ class RacingGame extends FlameGame with HasCollisionDetection {
   bool gameOver = false; 
   double limiteEsquerda = 0;
 
-  @override
-  Future<void> onLoad() async {
-    // Adicione aqui o código de inicialização do seu jogo, se houver
-    // Exemplo: add(carroAzul); etc.
-  }
+@override
+Future<void> onLoad() async {
+  super.onLoad(); // Garante a inicialização correta da Flame
+
+  // 1. Inicializa os objetos dos três carros
+  // 1. Inicializa os objetos definindo a posição de cada um
+  // 1. Inicializa os objetos definindo a posição e a cor de cada um
+  // 1. Inicializa os objetos definindo a posição e a cor correta do Flutter
+  carroAzul = CarroJogador(cor: Colors.blue, position: Vector2(100, 500));
+  carroAmarelo = CarroJogador(cor: Colors.yellow, position: Vector2(200, 500));
+  carroVermelho = CarroJogador(cor: Colors.red, position: Vector2(300, 500));
+
+  // 2. Adiciona os carros na tela para eles aparecerem
+  await add(carroAzul);
+  await add(carroAmarelo);
+  await add(carroVermelho);
+
+  // Aqui embaixo você pode colocar o código para adicionar seus obstáculos
+  // Exemplo: await add(Obstaculo());
+}
 
   // Método chamado pelos botões da interface do Flutter
   void moverEsquerda() {
