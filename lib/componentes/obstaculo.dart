@@ -1,26 +1,29 @@
+import 'dart:async';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:meu_jogo_corrida/racing_game.dart';
 
-class Obstaculo extends RectangleComponent with CollisionCallbacks {
-  Obstaculo({required Vector2 position, required Vector2 size})
-      : super(position: position, size: size) {
-    paint = Paint()..color = Colors.red;
+class Obstaculo extends RectangleComponent with HasGameRef<RacingGame> {
+  final double velocidade;
+  static final Paint _paintCor = Paint()..color = const Color(0xFFE65100);
+
+  Obstaculo({required Vector2 position, required this.velocidade}) 
+    : super(position: position, size: Vector2(54, 44)) {
+    paint = _paintCor;
   }
 
   @override
-  void onLoad() {
+  FutureOr<void> onLoad() {
     super.onLoad();
-    // OBRIGATÓRIO: Dá corpo físico ao bloco para o carro e o tiro baterem nele
-    add(RectangleHitbox()); 
+    add(RectangleHitbox());
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    position.y += 200 * dt; // Ajuste a velocidade se necessário
-
-    if (position.y > 1000) {
+    position.y += velocidade * dt;
+    if (position.y > gameRef.size.y + 40) {
       removeFromParent();
     }
   }

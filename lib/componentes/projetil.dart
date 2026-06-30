@@ -1,44 +1,33 @@
+import 'dart:async';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:meu_jogo_corrida/componentes/obstaculo.dart';
+import 'obstaculo.dart';
 
 class Projetil extends RectangleComponent {
-  final double velocidade = 400;
+  final double _speed = 650.0;
+  static final Paint _laserPaint = Paint()..color = Colors.cyanAccent;
 
   Projetil({required Vector2 posicao})
-      : super(
-          position: posicao,
-          size: Vector2(8, 20),
-          anchor: Anchor.center,
-        ) {
-    paint = Paint()..color = Colors.yellow;
-  }
+      : super(position: posicao, size: Vector2(6, 18), anchor: Anchor.center);
 
   @override
-  void onLoad() {
+  FutureOr<void> onLoad() {
     super.onLoad();
-    
     final hitbox = RectangleHitbox();
-    
-    // Lógica interna de colisão (Evita erros de mixin)
-    hitbox.onCollisionStartCallback = (intersectionPoints, other) {
+    hitbox.onCollisionStartCallback = (pts, other) {
       if (other is Obstaculo) {
-        other.removeFromParent(); // Destrói o obstáculo
-        removeFromParent();        // Destrói o tiro
+        other.removeFromParent();
+        removeFromParent();
       }
     };
-
-    add(hitbox); 
+    add(hitbox);
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    position.y -= velocidade * dt; 
-
-    if (position.y < -50) {
-      removeFromParent(); 
-    }
+    position.y -= _speed * dt;
+    if (position.y < -30) removeFromParent();
   }
 }

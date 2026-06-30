@@ -4,11 +4,11 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:meu_jogo_corrida/racing_game.dart';
 
-class ItemArma extends RectangleComponent with HasGameRef<RacingGame> {
-  static final Paint _paint = Paint()..color = Colors.cyan;
+class ItemCombustivel extends RectangleComponent with HasGameRef<RacingGame> {
+  static final Paint _paint = Paint()..color = Colors.orangeAccent;
 
-  ItemArma({required Vector2 posicao})
-      : super(position: posicao, size: Vector2(28, 28), anchor: Anchor.center);
+  ItemCombustivel({required Vector2 posicao})
+      : super(position: posicao, size: Vector2(24, 32), anchor: Anchor.center);
 
   @override
   FutureOr<void> onLoad() {
@@ -19,7 +19,7 @@ class ItemArma extends RectangleComponent with HasGameRef<RacingGame> {
   @override
   void update(double dt) {
     super.update(dt);
-    position.y += 180 * dt;
+    position.y += 190 * dt;
     if (position.y > gameRef.size.y + 30) removeFromParent();
   }
 }

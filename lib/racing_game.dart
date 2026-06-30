@@ -1,91 +1,156 @@
+
+
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'componentes/obstaculo.dart';
+import 'componentes/item_arma.dart';
+import 'componentes/item_combustivel.dart';
 import 'carros.dart'; 
 
 enum Dificuldade {
-  facil(velocidadeObstaculo: 200.0, tempoSpawn: 1.5),
-  medio(velocidadeObstaculo: 300.0, tempoSpawn: 1.0),
-  dificil(velocidadeObstaculo: 700.0, tempoSpawn: 0.1);
+  facil(velocidadeObstaculo: 250.0, tempoSpawn: 1.4),
+  medio(velocidadeObstaculo: 420.0, tempoSpawn: 0.8),
+  dificil(velocidadeObstaculo: 700.0, tempoSpawn: 0.4);
 
   final double velocidadeObstaculo;
   final double tempoSpawn;
-
-  const Dificuldade({
-    required this.velocidadeObstaculo,
-    required this.tempoSpawn,
-  });
+  const Dificuldade({required this.velocidadeObstaculo, required this.tempoSpawn});
 }
-
-// Controle de dificuldade global
-Dificuldade dificuldadeAtual = Dificuldade.facil;
 
 class RacingGame extends FlameGame with HasCollisionDetection {
   final int tipoCarro;
+  late CarroJogador _jogador;
+  
+  double _direcaoMovimento = 0.0;
+  final double _velocidadeJogador = 380.0;
 
-  // Construtor correto
+  bool gameOver = false;
+  Dificuldade dificuldadeAtual = Dificuldade.facil;
+  double _tempoProximoSpawn = 0.0;
+  final Random _random = Random();
+
+  double _limiteEsquerda = 0.0;
+  double _limiteDireita = 0.0;
+
+  // Notifiers Reativos para a UI do Flutter
+  final ValueNotifier<int> scoreNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<double> fuelNotifier = ValueNotifier<double>(1.0);
+  double _acumuladorScore = 0.0;
+
   RacingGame({required this.tipoCarro});
 
-  // Declaração dos carros
-  late CarroJogador carroAzul;
-  late CarroJogador carroAmarelo;
-  late CarroJogador carroVermelho;
+  @override
+  Color backgroundColor() => const Color(0xFF232526);
 
-  // Variáveis de estado do jogo
-  bool gameOver = false; 
-  double limiteEsquerda = 0;
-
-@override
-Future<void> onLoad() async {
-  super.onLoad(); // Garante a inicialização correta da Flame
-
-  // 1. Inicializa os objetos dos três carros
-  // 1. Inicializa os objetos definindo a posição de cada um
-  // 1. Inicializa os objetos definindo a posição e a cor de cada um
-  // 1. Inicializa os objetos definindo a posição e a cor correta do Flutter
-  carroAzul = CarroJogador(cor: Colors.blue, position: Vector2(100, 500));
-  carroAmarelo = CarroJogador(cor: Colors.yellow, position: Vector2(200, 500));
-  carroVermelho = CarroJogador(cor: Colors.red, position: Vector2(300, 500));
-
-  // 2. Adiciona os carros na tela para eles aparecerem
-  await add(carroAzul);
-  await add(carroAmarelo);
-  await add(carroVermelho);
-
-  // Aqui embaixo você pode colocar o código para adicionar seus obstáculos
-  // Exemplo: await add(Obstaculo());
-}
-
-  // Método chamado pelos botões da interface do Flutter
-  void moverEsquerda() {
-    // Certifique-se de que a variável ou lógica de posição dos seus carros está correta aqui
-    if (tipoCarro == 0) {
-      carroAzul.position.x -= 20;
-    } else if (tipoCarro == 1) {
-      carroAmarelo.position.x -= 20;
-    } else {
-      carroVermelho.position.x -= 20;
-    }
-  }
-  
-  // 🔴 ADICIONE ESTA NOVA FUNÇÃO EXATAMENTE AQUI:
-  void moverDireita() {
-    if (tipoCarro == 0) {
-      carroAzul.position.x += 20; // Soma (+) faz o carro ir para a direita
-    } else if (tipoCarro == 1) {
-      carroAmarelo.position.x += 20;
-    } else {
-      carroVermelho.position.x += 20;
-    }
+  @override
+  FutureOr<void> onLoad() async {
+    super.onLoad();
+    _configurarLimitesPista();
+    _inicializarJogadorAtivo();
   }
 
-  void parar() {
-    // Insira aqui a lógica para fazer o carro parar se o botão for solto
+  void _configurarLimitesPista() {
+    _limiteEsquerda = 24.0;
+    _limiteDireita = size.x - 74.0;
+  }
+
+  void _inicializarJogadorAtivo() {
+    final posicaoInicial = Vector2(size.x / 2 - 25, size.y - 130);
+    final cor = tipoCarro == 0 ? Colors.blue : (tipoCarro == 1 ? Colors.yellow : Colors.red);
+    _jogador = CarroJogador(cor: cor, position: posicaoInicial);
+    add(_jogador);
+  }
+
+  @override
+  void update(double dt) {
+    if (gameOver) return;
+    super.update(dt);
+
+    _atualizarMovimentoJogador(dt);
+    _gerenciarGeracaoDeObstaculos(dt);
+    _processarCicloDeSustentabilidade(dt);
+  }
+
+  void _atualizarMovimentoJogador(double dt) {
+    if (_direcaoMovimento == 0.0) return;
+    _jogador.position.x += _direcaoMovimento * _velocidadeJogador * dt;
+    _jogador.position.x = _jogador.position.x.clamp(_limiteEsquerda, _limiteDireita);
+  }
+
+  void _processarCicloDeSustentabilidade(double dt) {
+    // Consumo constante de combustível
+    fuelNotifier.value = (fuelNotifier.value - (0.04 * dt)).clamp(0.0, 1.0);
+    if (fuelNotifier.value <= 0.0) {
+      dispararGameOver();
+    }
+
+    // Ganho passivo de pontuação por sobrevivência
+    _acumuladorScore += dt * 10;
+    scoreNotifier.value = _acumuladorScore.toInt();
+
+    // Evolução reativa de dificuldade baseado no Score
+    if (scoreNotifier.value > 500 && dificuldadeAtual == Dificuldade.facil) {
+      dificuldadeAtual = Dificuldade.medio;
+    } else if (scoreNotifier.value > 1500 && dificuldadeAtual == Dificuldade.medio) {
+      dificuldadeAtual = Dificuldade.dificil;
+    }
+  }
+
+  void _gerenciarGeracaoDeObstaculos(double dt) {
+    _tempoProximoSpawn += dt;
+    if (_tempoProximoSpawn >= dificuldadeAtual.tempoSpawn) {
+      _tempoProximoSpawn = 0.0;
+      _gerarConteudoProcedural();
+    }
+  }
+
+  void _gerarConteudoProcedural() {
+    final x = _limiteEsquerda + _random.nextDouble() * (_limiteDireita - _limiteEsquerda);
+    final gatilho = _random.nextDouble();
+
+    if (gatilho < 0.12) {
+      add(ItemArma(posicao: Vector2(x, -40)));
+    } else if (gatilho < 0.26) {
+      add(ItemCombustivel(posicao: Vector2(x, -40)));
+    } else {
+      add(Obstaculo(position: Vector2(x, -80), velocidade: dificuldadeAtual.velocidadeObstaculo));
+    }
+  }
+
+  void moverEsquerda() => _direcaoMovimento = -1.0;
+  void moverDireita() => _direcaoMovimento = 1.0;
+  void parar() => _direcaoMovimento = 0.0;
+
+  void abastecer() {
+    fuelNotifier.value = (fuelNotifier.value + 0.35).clamp(0.0, 1.0);
+  }
+
+  void dispararGameOver() {
+    if (gameOver) return;
+    gameOver = true;
+    pauseEngine();
+    overlays.add('GameOver');
   }
 
   void reiniciar() {
+    children.whereType<Obstaculo>().forEach((o) => o.removeFromParent());
+    children.whereType<ItemArma>().forEach((i) => i.removeFromParent());
+    children.whereType<ItemCombustivel>().forEach((c) => c.removeFromParent());
+
     gameOver = false;
-    // Insira aqui a lógica para resetar a pista e os carros
+    _tempoProximoSpawn = 0.0;
+    _acumuladorScore = 0.0;
+    scoreNotifier.value = 0;
+    fuelNotifier.value = 1.0;
+    dificuldadeAtual = Dificuldade.facil;
+    
+    _jogador.position = Vector2(size.x / 2 - 25, size.y - 130);
+    _jogador.temArma = false;
+    _direcaoMovimento = 0.0;
+
+    overlays.remove('GameOver');
+    resumeEngine();
   }
 }
